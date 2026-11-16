@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download project source
+      - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Install Java 17
@@ -25,15 +25,18 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      # v4 + packages: platform-tools avoids the retired SDK "tools" package.
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
+          accept-android-sdk-licenses: 'true'
 
-      - name: Install Android SDK packages
+      - name: Install Android SDK platform and build tools
         run: |
-          yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Set up Gradle 8.11.1
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
@@ -51,6 +54,7 @@ jobs:
           fi
 
       - name: Verify project files
+        shell: bash
         run: |
           test -f "$PROJECT_DIR/settings.gradle.kts"
           test -f "$PROJECT_DIR/build.gradle.kts"
